@@ -1,0 +1,9 @@
+default-scenarios = ["assembleWithBuildCache"]
+
+assembleWithBuildCache {
+  title = "Assemble with build cache"
+  tasks = ["assembleDebug"]
+  daemon = warm
+  gradle-args = ["--build-cache"]
+  cleanup-tasks = ["clean"]
+}
