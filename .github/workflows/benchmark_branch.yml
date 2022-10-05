@@ -1,0 +1,95 @@
+name: Benchmark Branch
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        type: string
+        description: 'The machine runner the workflow should run on'
+        required: true
+      branch:
+        type: string
+        description: 'The branch to be benchmarked'
+        required: true
+      scenario:
+        type: string
+        description: 'The gradle profiler scenario to run'
+        required: true
+      warmups:
+        type: string
+        description: 'Amount of gradle daemon warmups to perform prior to benchmarking'
+        required: true
+        default: '4'
+      iterations:
+        type: string
+        description: 'Amount of benchmark iterations'
+        required: true
+        default: '15'
+      read_only_cache:
+        type: boolean
+        description: 'Should cache build and benchmarking artifacts'
+        required: false
+        default: true
+
+jobs:
+
+  benchmark-branch:
+    runs-on: ${{ inputs.runner }}
+    steps:
+
+      - name: Clone Repo
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch }}
+
+      - name: Set up JDK 19
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '19'
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          cache-read-only: ${{ inputs.read_only_cache }}
+
+      - name: Install and run the gradle profiler
+        run: |
+          curl -s "https://get.sdkman.io" | bash
+          source "$HOME/.sdkman/bin/sdkman-init.sh"
+          sdk install gradleprofiler 0.18.0
+          gradle-profiler --benchmark --scenario-file gradle/benchmark.scenarios ${{ inputs.scenario }} --warmups ${{ inputs.warmups }} --iteration ${{ inputs.iterations }} --gradle-user-home ~/.gradle
+
+      - name: Read pr csv
+        id: csv
+        uses: juliangruber/read-file-action@v1
+        with:
+          path: ./profile-out/benchmark.csv
+
+      - name: Convert CSV to Markdown
+        uses: petems/csv-to-md-table-action@v1.0.0
+        id: table-output
+        with:
+          csvinput: ${{ steps.csv.outputs.content }}
+
+      - name: Write job summary
+        run : |
+          echo "### ${{ inputs.branch }}" >> $GITHUB_STEP_SUMMARY
+          echo "${{steps.table-output.outputs.markdown-table}}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Rename files
+        run: |
+          task="${{ matrix.task }}"
+          hash="$(echo -n "$task" | md5sum | awk '{print $1}'))"
+          for i in profile-out/*; do
+            mv "$i" "profile-out/${hash}.${i#*.}";
+          done
+
+      - name: Upload results
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ inputs.branch }}-results
+          path: profile-out/
+
+
+
