@@ -59,7 +59,7 @@ jobs:
         task: ${{ fromJSON(needs.setup.outputs.task-matrix) }}
     with:
       runner: ubuntu-latest
-      branch: master
+      branch: main
       scenario: ${{ matrix.task }}
       warmups: ${{ github.event.inputs.warmups }}
       iterations: ${{ github.event.inputs.iterations }}
