@@ -96,14 +96,14 @@ jobs:
 
       - name: Aggregate results
         run: |
-          awk -F, -v OFS="," '{a[FNR] = (FNR==NR ? $0 : a[FNR] OFS $2)}END { for(i=1;i<=FNR;i++) print a[i]}' results/master-results/*.csv > master-results.csv
+          awk -F, -v OFS="," '{a[FNR] = (FNR==NR ? $0 : a[FNR] OFS $2)}END { for(i=1;i<=FNR;i++) print a[i]}' results/main-results/*.csv > main-results.csv
           awk -F, -v OFS="," '{a[FNR] = (FNR==NR ? $0 : a[FNR] OFS $2)}END { for(i=1;i<=FNR;i++) print a[i]}' results/${{ needs.setup.outputs.branch }}-results/*.csv > pr-results.csv
 
       - name: Read master csv
         id: master-csv
         uses: juliangruber/read-file-action@v1
         with:
-          path: ./master-results.csv
+          path: ./main-results.csv
 
       - name: Read pr csv
         id: pr-csv
