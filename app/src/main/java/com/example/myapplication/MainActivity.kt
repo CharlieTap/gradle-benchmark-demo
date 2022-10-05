@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
 
         binding.fab.setOnClickListener { view ->
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Actionn", null).show()
+                .setAction("Actions", null).show()
         }
     }
 
