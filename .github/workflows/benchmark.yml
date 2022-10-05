@@ -72,7 +72,7 @@ jobs:
       matrix:
         task: ${{ fromJSON(needs.setup.outputs.task-matrix) }}
     with:
-      runner: buildjet-2vcpu-ubuntu-2204
+      runner: ubuntu-latest
       branch: ${{ needs.setup.outputs.branch }}
       scenario: ${{ matrix.task }}
       warmups: ${{ github.event.inputs.warmups }}
